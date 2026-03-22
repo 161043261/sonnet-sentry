@@ -1,0 +1,19 @@
+{
+  "name": "@sonnet-sentry/utils",
+  "version": "1.0.0",
+  "description": "Sentry sdk utils",
+  "type": "module",
+  "keywords": [
+    "sentry",
+    "sdk",
+    "utils"
+  ],
+  "author": "github.com/161043261",
+  "license": "MIT",
+  "dependencies": {
+    "@sonnet-sentry/constants": "workspace:^",
+    "@sonnet-sentry/types": "workspace:^",
+    "ua-parser-js": "^2.0.9",
+    "web-vitals": "^5.1.0"
+  }
+}

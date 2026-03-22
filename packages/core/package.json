@@ -1,0 +1,29 @@
+{
+  "name": "@sonnet-sentry/core",
+  "version": "1.0.0",
+  "description": "Sentry sdk core",
+  "type": "module",
+  "keywords": [
+    "sentry",
+    "sdk",
+    "core"
+  ],
+  "author": "github.com/161043261",
+  "license": "MIT",
+  "dependencies": {
+    "@sonnet-sentry/constants": "workspace:^",
+    "@sonnet-sentry/reporter": "workspace:^",
+    "@sonnet-sentry/types": "workspace:^",
+    "@sonnet-sentry/utils": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "react": "^19.2.4",
+    "vue": "^3.5.30"
+  },
+  "peerDependencies": {
+    "react": "^19.2.3",
+    "vue": "^3.5.26"
+  }
+}
