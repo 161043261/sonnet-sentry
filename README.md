@@ -111,7 +111,3 @@ uv run ./main.py
   }
 }
 ```
-
-## About
-
-sonnet-sentry 是一个使用 monorepo 的前端监控 SDK，支持异常捕获、性能指标采集、白屏检测及用户行为重放。异常捕获模块支持捕获 js 运行时错误、资源加载错误、未捕获的 promise 异常、xhr 和 fetch 请求错误，监控点击事件、路由跳转等用户行为。性能指标采集模块计算 LCP/FCP/CLS/INP 等 web-vitals 指标，使用 Observer API 计算首屏渲染时间。SDK 支持白屏检测，实现基于关键点采样的白屏检测算法，以区分骨架屏与真实白屏。为重放故障现场，SDK 支持屏幕录制，故障发生时使用 rrweb + gzip 记录现场，使用 navigator.sendBeacon 作为首选数据上报方式，并提供 fetch 降级方案。整体架构使用发布订阅，实现 core 模块和多个监控字模块的解耦，具有高扩展性与可维护性
