@@ -29,9 +29,7 @@
     "esModuleInterop": true,
     "importHelpers": true,
     "forceConsistentCasingInFileNames": true,
-    "paths": {
-      "@sonnet-sentry/*": ["./packages/*"]
-    }
+    "types": ["node"]
   },
-  "include": ["packages", "tests", "server"]
+  "include": ["sentry", "tests", "server", "rollup.config.ts"]
 }

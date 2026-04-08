@@ -1,5 +1,5 @@
 packages:
-  - packages/*
+  - sentry
   - client
   - server
 

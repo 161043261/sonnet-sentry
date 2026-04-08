@@ -1,49 +1,33 @@
 {
-  "name": "sonnet-sentry",
-  "private": true,
+  "name": "sonnet-sentry-root",
   "version": "1.0.0",
-  "description": "Sentry sdk",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "sentry"
+  ],
   "scripts": {
     "prepare": "husky",
-    "lint": "eslint ./packages --quiet --ext .js,.jsx,.ts,.tsx --fix",
-    "format": "prettier --write ./client ./packages ./server",
-    "build": "rollup -c ./rollup.config.js",
+    "lint": "eslint ./sentry --quiet --ext .js,.jsx,.ts,.tsx --fix",
+    "format": "prettier --write ./client ./sentry ./server",
+    "build": "rollup -c ./rollup.config.ts",
     "dev:client": "cd ./client && pnpm dev",
     "dev:server": "cd ./server && pnpm dev",
     "dev": "pnpm build && concurrently \"pnpm dev:client\" \"pnpm dev:server\""
   },
-  "keywords": [
-    "sentry",
-    "sdk"
-  ],
-  "author": "github.com/161043261",
-  "license": "MIT",
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
-    "@rollup/plugin-commonjs": "^29.0.0",
-    "@rollup/plugin-node-resolve": "^16.0.3",
-    "@rollup/plugin-terser": "^0.4.4",
-    "@types/node": "^25.0.6",
-    "concurrently": "^9.2.1",
-    "eslint": "^9.39.2",
-    "globals": "^17.0.0",
+    "@rollup/plugin-commonjs": "^25.0.8",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.3.1",
+    "@rollup/plugin-terser": "^1.0.0",
+    "@rollup/plugin-typescript": "^11.1.6",
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.7",
-    "prettier": "^3.7.4",
-    "rollup": "^4.55.1",
-    "rollup-plugin-dts": "^6.3.0",
-    "rollup-plugin-esbuild": "^6.2.1",
+    "rollup": "^4.60.1",
+    "rollup-plugin-dts": "^6.4.1",
     "tslib": "^2.8.1",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.52.0"
+    "typescript": "^5.9.3"
   },
-  "type": "module",
   "dependencies": {
-    "@rollup/plugin-json": "^6.1.0"
-  },
-  "lint-staged": {
-    "*.{json,jsonc,js,jsx,ts,tsx,html,vue,css,md,mdx}": [
-      "pnpm format"
-    ]
+    "ua-parser-js": "^2.0.9"
   }
 }
