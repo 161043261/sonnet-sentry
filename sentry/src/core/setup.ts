@@ -1,5 +1,6 @@
 import { EventType, type TEventHandler, type TReportPayload } from "../types";
-import { sonnetLogger } from "../utils";
+import { sonnetLogger, getBaseData } from "../utils";
+import reporter from "../reporter/index.js";
 
 import { sub } from "./bus.js";
 
@@ -45,6 +46,34 @@ function setup() {
   subscriptions.forEach(({ type, handler }) => {
     sub(type, handler as THandler);
     decoratePublish(type);
+  });
+
+  reporter.send({
+    ...getBaseData(),
+    type: EventType.PV,
+    name: "PageLoad",
+    message: "Page Initial Load",
+    extra: {
+      url: location.href,
+      referrer: document.referrer,
+    },
+  });
+
+  const pageStartTime = Date.now();
+  window.addEventListener("beforeunload", () => {
+    const duration = Date.now() - pageStartTime;
+    reporter.send(
+      {
+        ...getBaseData(),
+        type: EventType.PV,
+        name: "PageUnload",
+        message: "Page Unload",
+        extra: {
+          duration,
+        },
+      },
+      true,
+    ); // immediate = true 立即发送
   });
 
   sonnetLogger.success(

@@ -7,6 +7,8 @@ import { CallbackQueue, sentry, sonnetLogger } from "../utils";
 export class DataReporter implements IDataReporter {
   cbQueue = new CallbackQueue();
   id = crypto.randomUUID();
+  private events: IReportData[] = [];
+  private timeoutID?: ReturnType<typeof setTimeout>;
 
   static #instance: DataReporter;
 
@@ -17,17 +19,25 @@ export class DataReporter implements IDataReporter {
     return this.#instance;
   }
 
-  sendBeacon(data: IReportData) {
-    return navigator.sendBeacon(sentry.options.dsn, JSON.stringify(data));
+  private isObjectOverSizeLimit(obj: any, limitInKB: number): boolean {
+    const size = new Blob([JSON.stringify(obj)]).size;
+    return size > limitInKB * 1024;
   }
 
-  reportByFetch(data: IReportData) {
+  sendBeacon(data: any) {
+    if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+      return navigator.sendBeacon(sentry.options.dsn, JSON.stringify(data));
+    }
+    return false;
+  }
+
+  reportByFetch(data: any) {
     const cb = () => {
       fetch(sentry.options.dsn, {
         method: "POST",
         body: JSON.stringify(data),
-        // headers: [['Content-Type', 'application/json']]
         headers: { "Content-Type": "application/json" },
+        keepalive: true,
       }).catch((err) => {
         sonnetLogger.error("Sonnet Sentry Report", "Fetch report failed", err);
       });
@@ -35,7 +45,7 @@ export class DataReporter implements IDataReporter {
     this.cbQueue.push(cb);
   }
 
-  reportByImage(data: IReportData) {
+  reportByImage(data: any) {
     const { dsn } = sentry.options;
     const cb = () => {
       const image = new Image();
@@ -69,9 +79,39 @@ export class DataReporter implements IDataReporter {
     return reportData;
   }
 
-  async send(payload: TReportPayload) {
-    const { dsn, screenRecordEventTypes, onBeforeReportData, useImageReport } =
-      sentry.options;
+  private flush() {
+    if (this.events.length === 0) return;
+    const sendData = this.events.slice();
+    this.events = [];
+
+    const startTime = performance.now();
+    // sendBeacon limit is around 64KB, we check 60KB to be safe
+    const isOverSize = this.isObjectOverSizeLimit(sendData, 60);
+
+    let ok = false;
+    if (!isOverSize) {
+      ok = this.sendBeacon(sendData);
+    }
+
+    if (!ok) {
+      // Image has ~2KB URL limit. If over size, force fetch.
+      if (sentry.options.useImageReport && !this.isObjectOverSizeLimit(sendData, 2)) {
+        this.reportByImage(sendData);
+      } else {
+        this.reportByFetch(sendData);
+      }
+    }
+
+    sonnetLogger.success(
+      "Sonnet Sentry Report",
+      "Batch report queued or sent",
+      { count: sendData.length, overSize: isOverSize },
+      Math.round(performance.now() - startTime),
+    );
+  }
+
+  async send(payload: TReportPayload, immediate = false) {
+    const { dsn, screenRecordEventTypes, onBeforeReportData } = sentry.options;
     if (dsn === "") {
       sonnetLogger.error(
         "Sonnet Sentry",
@@ -90,36 +130,16 @@ export class DataReporter implements IDataReporter {
 
     sonnetLogger.info("Sonnet Sentry Report", `Type: ${payload.type}`, data);
 
-    const startTime = performance.now();
+    this.events.push(data);
 
-    const ok = this.sendBeacon(data);
-    if (!ok) {
-      if (useImageReport) {
-        this.reportByImage(data);
-        sonnetLogger.success(
-          "Sonnet Sentry Report",
-          "Image report queued",
-          { type: payload.type },
-          Math.round(performance.now() - startTime),
-        );
-        return;
-      } else {
-        this.reportByFetch(data);
-        sonnetLogger.success(
-          "Sonnet Sentry Report",
-          "Fetch report queued",
-          { type: payload.type },
-          Math.round(performance.now() - startTime),
-        );
-        return;
-      }
+    if (this.timeoutID) {
+      clearTimeout(this.timeoutID);
+    }
+
+    if (immediate || this.events.length >= 10) {
+      this.flush();
     } else {
-      sonnetLogger.success(
-        "Sonnet Sentry Report",
-        "Beacon report successful",
-        { type: payload.type },
-        Math.round(performance.now() - startTime),
-      );
+      this.timeoutID = setTimeout(() => this.flush(), 2000);
     }
   }
 }

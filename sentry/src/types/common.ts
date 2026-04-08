@@ -28,6 +28,8 @@ export interface IDeviceInfo {
 
 export interface IReportPayload {
   id: string;
+  deviceId?: string;
+  sessionId?: string;
   type: EventType;
   name: string;
   time: string;
@@ -78,8 +80,8 @@ export type IPerformanceData =
   | IPerformanceMemoryData;
 
 export interface ICodeError extends IReportPayload {
-  column: number;
   line: number;
+  column: number;
 }
 
 export interface IScreenRecordData extends IReportPayload {

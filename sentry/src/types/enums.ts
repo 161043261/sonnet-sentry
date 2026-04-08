@@ -49,6 +49,7 @@ export enum EventType {
   ScreenRecord = "ScreenRecord",
   WhiteScreen = "WhiteScreen",
   Custom = "Custom",
+  PV = "PV",
 }
 
 export enum HttpType {

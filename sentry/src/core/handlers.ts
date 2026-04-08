@@ -139,6 +139,14 @@ const handleHistory: TEventHandler<IRouteData> = ({
     ...routeData,
     userAction: event2breadcrumb(EventType.History),
   });
+  // 发送 PV
+  reporter.send({
+    ...getBaseData(),
+    type: EventType.PV,
+    name: "HistoryChange",
+    message: routeChange,
+    extra: { from, to },
+  });
 };
 
 const handleHashChange: TEventHandler<IBaseDataWithEvent> = ({
@@ -159,6 +167,14 @@ const handleHashChange: TEventHandler<IBaseDataWithEvent> = ({
   breadcrumb.push({
     ...routeData,
     userAction: event2breadcrumb(EventType.HashChange),
+  });
+  // 发送 PV
+  reporter.send({
+    ...getBaseData(),
+    type: EventType.PV,
+    name: "HashChange",
+    message: pathChange,
+    extra: { from, to },
   });
 };
 
