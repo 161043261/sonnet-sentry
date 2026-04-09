@@ -12,11 +12,7 @@ export default defineConfig({
   ],
   optimizeDeps: {
     // 禁止预构建依赖
-    exclude: [
-      "@sonnet-sentry/core",
-      "@sonnet-sentry/performance",
-      "@sonnet-sentry/screen-record",
-    ],
+    exclude: ["sonnet-sentry"],
   },
   server: {
     proxy: {

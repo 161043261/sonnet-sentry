@@ -2,7 +2,6 @@
 
 - Vue3
 - React
-- Angular
 - ...
 
 ## Rollup
@@ -12,16 +11,11 @@ pnpm add rollup -D
 
 pnpm add \
 @rollup/plugin-commonjs \
+@rollup/plugin-json \
 @rollup/plugin-node-resolve \
 @rollup/plugin-terser \
-# @rollup/plugin-typescript \
--D
-
-pnpm add \
-rollup-plugin-dts \
-rollup-plugin-esbuild -D
-
-pnpm add tslib -D
+@rollup/plugin-typescript \
+rollup-plugin-dts -D
 ```
 
 ## Client
@@ -30,16 +24,15 @@ pnpm-workspace.yaml
 
 ```yaml
 packages:
-  - "packages/*"
+  - "sentry"
   - "client"
+  - "server"
 ```
 
 Install dependencies
 
 ```bash
-pnpm add @sonnet-sentry/core --filter client
-pnpm add @sonnet-sentry/performance --filter client
-pnpm add @sonnet-sentry/screen-record --filter client
+pnpm add sonnet-sentry --filter client
 ```
 
 Update ./client/vite.config.ts
@@ -50,11 +43,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   optimizeDeps: {
     // 禁止预构建依赖
-    exclude: [
-      "@sonnet-sentry/core",
-      "@sonnet-sentry/performance",
-      "@sonnet-sentry/screen-record",
-    ],
+    exclude: ["sonnet-sentry"],
   },
 });
 ```
@@ -62,21 +51,22 @@ export default defineConfig({
 Update ./client/src/main.ts[x]
 
 ```ts
-import { init, sonnetEnable } from "@sonnet-sentry/core";
-import PerformancePlugin from "@sonnet-sentry/performance";
-import ScreenRecordPlugin from "@sonnet-sentry/screen-record";
+import { init, sonnetEnable } from "sonnet-sentry";
+import PerformancePlugin from "sonnet-sentry/plugins/perf";
+import ScreenRecordPlugin from "sonnet-sentry/plugins/record";
+import ExposurePlugin from "sonnet-sentry/plugins/exposure";
 
-init({ dsn: "http://127.0.0.1:8080/api/log" });
+init({ dsn: "/api/log" });
 sonnetEnable(PerformancePlugin);
 sonnetEnable(ScreenRecordPlugin);
+sonnetEnable(ExposurePlugin);
 ```
 
 ## Server
 
 ```bash
 cd ./server
-uv sync
-uv run ./main.py
+pnpm dev
 ```
 
 ## Logs
