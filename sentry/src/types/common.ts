@@ -25,7 +25,7 @@ export interface IDeviceInfo {
   deviceType: string; // 设备种类, 例如 PC
   deviceModel: string; // 设备描述
   fingerprint: string; // 设备指纹
-  language: string; // 系统语言
+  language: string; // 语言
   screenResolution: string; // 屏幕分辨率
 }
 

@@ -59,9 +59,9 @@ export interface IOptions {
   maxQueueLength: number;
   // 发送数据前钩子
   onBeforeReportData?: (data: any) => Promise<any> | any;
-  // 离线缓存本地键名
+  // 离线缓存本地键
   offlineCacheKey: string;
-  // 数据采样率 (0 - 1)
+  // 数据采样率, 0 - 1
   tracesSampleRate: number;
   // 处理 http 错误的回调
   handleHttpError?: <T>(data: T) => boolean;

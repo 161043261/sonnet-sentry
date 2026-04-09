@@ -158,7 +158,6 @@ const handleHistory: TEventHandler<IRouteData> = ({
     ...routeData,
     userAction: event2breadcrumb(EventType.History),
   });
-  // 发送 PV
   reporter.send({
     ...getBaseData(),
     type: EventType.PV,
@@ -187,7 +186,6 @@ const handleHashChange: TEventHandler<IBaseDataWithEvent> = ({
     ...routeData,
     userAction: event2breadcrumb(EventType.HashChange),
   });
-  // 发送 PV
   reporter.send({
     ...getBaseData(),
     type: EventType.PV,

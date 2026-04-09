@@ -79,7 +79,7 @@ function setup() {
         },
       },
       true,
-    ); // immediate = true 立即发送
+    ); // immediate = true 立刻发送
   });
 
   sonnetLogger.success(

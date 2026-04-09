@@ -83,7 +83,6 @@ export class DataReporter implements IDataReporter {
     this.isOnline = false;
     if (this.retryTimer) clearTimeout(this.retryTimer);
 
-    // 定时重试，直到接口恢复
     const interval = 60 * 1000; // 1 min
     this.retryTimer = setTimeout(() => {
       this.testServerAvailable();
