@@ -31,5 +31,5 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["node"]
   },
-  "include": ["sentry", "tests", "server", "rollup.config.ts"]
+  "include": ["./sentry", "./server", "./rollup.config.ts", "./webpack.config.ts"]
 }

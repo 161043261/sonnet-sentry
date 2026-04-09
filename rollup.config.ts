@@ -12,6 +12,7 @@ export default defineConfig([
       index: "./sentry/src/index.ts",
       "plugins/perf/index": "./sentry/src/plugins/perf/index.ts",
       "plugins/record/index": "./sentry/src/plugins/record/index.ts",
+      "plugins/exposure/index": "./sentry/src/plugins/exposure/index.ts",
     },
     output: [
       {
@@ -59,6 +60,7 @@ export default defineConfig([
       index: "./sentry/src/index.ts",
       "plugins/perf/index": "./sentry/src/plugins/perf/index.ts",
       "plugins/record/index": "./sentry/src/plugins/record/index.ts",
+      "plugins/exposure/index": "./sentry/src/plugins/exposure/index.ts",
     },
     output: {
       dir: "./sentry/dist",
