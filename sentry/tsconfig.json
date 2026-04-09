@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ES2018",
+    "target": "ES2023",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "allowJs": true,
