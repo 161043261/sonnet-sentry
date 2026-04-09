@@ -9,14 +9,60 @@ export class DataReporter implements IDataReporter {
   id = crypto.randomUUID();
   private events: IReportData[] = [];
   private timeoutID?: ReturnType<typeof setTimeout>;
+  private isOnline: boolean = true;
 
   static #instance: DataReporter;
 
   static get instance() {
     if (!this.#instance) {
       this.#instance = new DataReporter();
+      this.#instance.initNetworkListener();
     }
     return this.#instance;
+  }
+
+  private initNetworkListener() {
+    if (typeof window !== "undefined") {
+      this.isOnline = navigator.onLine !== false;
+      window.addEventListener("online", () => {
+        this.isOnline = true;
+        sonnetLogger.info(
+          "Sonnet Sentry",
+          "Network is back online, flushing cache",
+        );
+        this.loadOfflineCache();
+        this.flush();
+      });
+      window.addEventListener("offline", () => {
+        this.isOnline = false;
+        sonnetLogger.info(
+          "Sonnet Sentry",
+          "Network is offline, caching events",
+        );
+      });
+    }
+  }
+
+  private loadOfflineCache() {
+    try {
+      const cache = localStorage.getItem(sentry.options.offlineCacheKey);
+      if (cache) {
+        const parsed = JSON.parse(cache);
+        if (Array.isArray(parsed)) {
+          this.events.unshift(...parsed);
+        }
+        localStorage.removeItem(sentry.options.offlineCacheKey);
+      }
+    } catch (e) {}
+  }
+
+  private saveOfflineCache() {
+    try {
+      localStorage.setItem(
+        sentry.options.offlineCacheKey,
+        JSON.stringify(this.events),
+      );
+    } catch (e) {}
   }
 
   private isObjectOverSizeLimit(obj: any, limitInKB: number): boolean {
@@ -31,6 +77,42 @@ export class DataReporter implements IDataReporter {
     return false;
   }
 
+  private retryTimer?: ReturnType<typeof setTimeout>;
+
+  private handleServerError() {
+    this.isOnline = false;
+    if (this.retryTimer) clearTimeout(this.retryTimer);
+
+    // 定时重试，直到接口恢复
+    const interval = 60 * 1000; // 1 min
+    this.retryTimer = setTimeout(() => {
+      this.testServerAvailable();
+    }, interval);
+  }
+
+  private testServerAvailable() {
+    fetch(sentry.options.dsn, {
+      method: "HEAD",
+    })
+      .then((res) => {
+        if (res.ok) {
+          this.isOnline = true;
+          sonnetLogger.info(
+            "Sonnet Sentry",
+            "Server is back available, flushing cache",
+          );
+          if (this.retryTimer) clearTimeout(this.retryTimer);
+          this.loadOfflineCache();
+          this.flush();
+        } else {
+          this.handleServerError();
+        }
+      })
+      .catch(() => {
+        this.handleServerError();
+      });
+  }
+
   reportByFetch(data: any) {
     const cb = () => {
       fetch(sentry.options.dsn, {
@@ -38,9 +120,20 @@ export class DataReporter implements IDataReporter {
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/json" },
         keepalive: true,
-      }).catch((err) => {
-        sonnetLogger.error("Sonnet Sentry Report", "Fetch report failed", err);
-      });
+      })
+        .then((res) => {
+          if (!res.ok) {
+            this.handleServerError();
+          }
+        })
+        .catch((err) => {
+          sonnetLogger.error(
+            "Sonnet Sentry Report",
+            "Fetch report failed",
+            err,
+          );
+          this.handleServerError();
+        });
     };
     this.cbQueue.push(cb);
   }
@@ -81,8 +174,18 @@ export class DataReporter implements IDataReporter {
 
   private flush() {
     if (this.events.length === 0) return;
-    const sendData = this.events.slice();
-    this.events = [];
+
+    if (!this.isOnline) {
+      if (this.events.length > sentry.options.maxQueueLength) {
+        this.events = this.events.slice(-sentry.options.maxQueueLength);
+      }
+      this.saveOfflineCache();
+      return;
+    }
+
+    const maxItems = sentry.options.cacheMaxLength;
+    const sendData = this.events.slice(0, maxItems);
+    this.events = this.events.slice(maxItems);
 
     const startTime = performance.now();
     // sendBeacon limit is around 64KB, we check 60KB to be safe
@@ -95,7 +198,10 @@ export class DataReporter implements IDataReporter {
 
     if (!ok) {
       // Image has ~2KB URL limit. If over size, force fetch.
-      if (sentry.options.useImageReport && !this.isObjectOverSizeLimit(sendData, 2)) {
+      if (
+        sentry.options.useImageReport &&
+        !this.isObjectOverSizeLimit(sendData, 2)
+      ) {
         this.reportByImage(sendData);
       } else {
         this.reportByFetch(sendData);
@@ -108,15 +214,36 @@ export class DataReporter implements IDataReporter {
       { count: sendData.length, overSize: isOverSize },
       Math.round(performance.now() - startTime),
     );
+
+    if (this.events.length > 0) {
+      if (this.timeoutID) clearTimeout(this.timeoutID);
+      this.timeoutID = setTimeout(() => this.flush(), 100);
+    }
   }
 
   async send(payload: TReportPayload, immediate = false) {
-    const { dsn, screenRecordEventTypes, onBeforeReportData } = sentry.options;
+    const {
+      dsn,
+      screenRecordEventTypes,
+      onBeforeReportData,
+      cacheMaxLength,
+      cacheWaitingTime,
+      maxQueueLength,
+      tracesSampleRate,
+    } = sentry.options;
     if (dsn === "") {
       sonnetLogger.error(
         "Sonnet Sentry",
         "DSN is empty, report cancelled",
         payload,
+      );
+      return;
+    }
+
+    if (Math.random() > tracesSampleRate) {
+      sonnetLogger.info(
+        "Sonnet Sentry Report",
+        `Dropped by sample rate: ${payload.type}`,
       );
       return;
     }
@@ -126,20 +253,29 @@ export class DataReporter implements IDataReporter {
     let data = this.payload2reportData(payload);
     if (onBeforeReportData) {
       data = await onBeforeReportData(data);
+      if (!data) return; // User dropped the data
     }
 
     sonnetLogger.info("Sonnet Sentry Report", `Type: ${payload.type}`, data);
 
     this.events.push(data);
 
+    if (!this.isOnline) {
+      if (this.events.length > maxQueueLength) {
+        this.events = this.events.slice(-maxQueueLength);
+      }
+      this.saveOfflineCache();
+      return;
+    }
+
     if (this.timeoutID) {
       clearTimeout(this.timeoutID);
     }
 
-    if (immediate || this.events.length >= 10) {
+    if (immediate || this.events.length >= cacheMaxLength) {
       this.flush();
     } else {
-      this.timeoutID = setTimeout(() => this.flush(), 2000);
+      this.timeoutID = setTimeout(() => this.flush(), cacheWaitingTime);
     }
   }
 }

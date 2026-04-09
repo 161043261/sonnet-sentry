@@ -48,6 +48,7 @@ function setup() {
     decoratePublish(type);
   });
 
+  const pageStartTime = Date.now();
   reporter.send({
     ...getBaseData(),
     type: EventType.PV,
@@ -56,20 +57,25 @@ function setup() {
     extra: {
       url: location.href,
       referrer: document.referrer,
+      entryTime: pageStartTime,
     },
   });
 
-  const pageStartTime = Date.now();
   window.addEventListener("beforeunload", () => {
     const duration = Date.now() - pageStartTime;
+    const { type } = performance.navigation;
+    const loadTypes = ["Navigate", "Reload", "Back_Forward", "Reserved"];
+    const operateAction = loadTypes[type] || "Unknown";
+
     reporter.send(
       {
         ...getBaseData(),
         type: EventType.PV,
         name: "PageUnload",
-        message: "Page Unload",
+        message: "Page Unload / Dwell Time",
         extra: {
           duration,
+          operateAction,
         },
       },
       true,

@@ -45,4 +45,9 @@ export const DEFAULT_OPTIONS: IOptions = {
   screenRecordDurationMs: 3000,
   repeatCodeError: false,
   excludeApis: [],
+  cacheMaxLength: 10,
+  cacheWaitingTime: 2000,
+  maxQueueLength: 200,
+  offlineCacheKey: "sonnet_sentry_offline_cache",
+  tracesSampleRate: 1,
 };

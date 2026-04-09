@@ -115,9 +115,21 @@ importers:
 
   sentry:
     dependencies:
+      '@rrweb/record':
+        specifier: 2.0.0-alpha.18
+        version: 2.0.0-alpha.18
       '@types/pako':
         specifier: ^2.0.4
         version: 2.0.4
+      pako:
+        specifier: ^2.1.0
+        version: 2.1.0
+      react:
+        specifier: ^19.2.4
+        version: 19.2.4
+      vue:
+        specifier: ^3.5.30
+        version: 3.5.32(typescript@6.0.2)
       web-vitals:
         specifier: ^5.1.0
         version: 5.2.0
@@ -131,30 +143,18 @@ importers:
       '@rollup/plugin-typescript':
         specifier: ^12.3.0
         version: 12.3.0(rollup@4.60.1)(tslib@2.8.1)(typescript@6.0.2)
-      '@rrweb/record':
-        specifier: 2.0.0-alpha.18
-        version: 2.0.0-alpha.18
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.14
       '@types/react-dom':
         specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.14)
-      pako:
-        specifier: ^2.1.0
-        version: 2.1.0
-      react:
-        specifier: ^19.2.4
-        version: 19.2.4
       rollup:
         specifier: ^4.60.1
         version: 4.60.1
       typescript:
         specifier: ^6.0.2
         version: 6.0.2
-      vue:
-        specifier: ^3.5.30
-        version: 3.5.32(typescript@6.0.2)
 
   server:
     dependencies:

@@ -47,12 +47,22 @@ export interface IOptions {
   maxBreadcrumbs: number;
   // 是否重复上报源代码错误
   repeatCodeError: boolean;
-  // 排除的接口
-  excludeApis: (RegExp | string)[];
+  // 排除拦截的 API
+  excludeApis: (string | RegExp)[];
   // 入堆前的 hook
   onBeforePushBreadcrumb?: (data: IBreadcrumbItem) => IBreadcrumbItem;
-  // 数据上报前的 hook
-  onBeforeReportData?: (data: IReportData) => Promise<IReportData>;
-  // 处理 http 错误的回调函数
+  // 离线缓存最大长度
+  cacheMaxLength: number;
+  // 缓存等待时间 (ms)
+  cacheWaitingTime: number;
+  // 队列最大缓存数(离线时)
+  maxQueueLength: number;
+  // 发送数据前钩子
+  onBeforeReportData?: (data: any) => Promise<any> | any;
+  // 离线缓存本地键名
+  offlineCacheKey: string;
+  // 数据采样率 (0 - 1)
+  tracesSampleRate: number;
+  // 处理 http 错误的回调
   handleHttpError?: <T>(data: T) => boolean;
 }

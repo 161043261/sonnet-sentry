@@ -28,23 +28,26 @@
       "import": "./dist/plugins/record/index.js",
       "require": "./dist/plugins/record/index.cjs",
       "types": "./dist/plugins/record/index.d.ts"
+    },
+    "./plugins/exposure": {
+      "import": "./dist/plugins/exposure/index.js",
+      "require": "./dist/plugins/exposure/index.cjs",
+      "types": "./dist/plugins/exposure/index.d.ts"
     }
   },
   "dependencies": {
+    "@rrweb/record": "2.0.0-alpha.18",
+    "pako": "^2.1.0",
     "web-vitals": "^5.1.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^29.0.2",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-typescript": "^12.3.0",
-    "@rrweb/record": "2.0.0-alpha.18",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "pako": "^2.1.0",
-    "react": "^19.2.4",
     "rollup": "^4.60.1",
-    "typescript": "^6.0.2",
-    "vue": "^3.5.30"
+    "typescript": "^6.0.2"
   },
   "peerDependencies": {
     "@types/pako": "^2.0.4",

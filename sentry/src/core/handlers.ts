@@ -8,6 +8,7 @@ import {
   type IResourceError,
   type TEventHandler,
   type IBaseDataWithEvent,
+  type IBatchErrorData,
 } from "../types";
 
 import {
@@ -65,6 +66,7 @@ const handleError: TEventHandler<IBaseDataWithEvent> = ({
 
   if (isErrorEvent(err)) {
     handleCodeError(err);
+    return;
   }
 
   if (isIExtendedErrorEvent(err)) {
@@ -83,25 +85,37 @@ const handleError: TEventHandler<IBaseDataWithEvent> = ({
       ...resourceError,
       userAction: event2breadcrumb(EventType.Resource),
     });
-    reporter.send(resourceError);
+
+    const errorId = base64v2(
+      `${EventType.Resource}-${localName}-${src || href}`,
+    );
+    if (sentry.options.repeatCodeError || !sentry.codeErrors.has(errorId)) {
+      sentry.codeErrors.add(errorId);
+      reporter.send(resourceError);
+    }
     return;
   }
 
   if (isError(err)) {
-    const { name, message } = err;
+    const { name, message, stack } = err;
     const data: IBaseDataWithEvent = {
       ...rest,
       type: EventType.Error,
       name,
       message,
       status: Status.Error,
-      extra: err,
+      extra: stack || err,
     };
     breadcrumb.push({
       ...data,
       userAction: event2breadcrumb(EventType.Error),
     });
-    reporter.send(data);
+
+    const errorId = base64v2(`${EventType.Error}-${name}-${message}`);
+    if (sentry.options.repeatCodeError || !sentry.codeErrors.has(errorId)) {
+      sentry.codeErrors.add(errorId);
+      reporter.send(data);
+    }
     return;
   }
 
@@ -110,7 +124,7 @@ const handleError: TEventHandler<IBaseDataWithEvent> = ({
     ...rest,
     type: EventType.Error,
     name: "Unknown Error",
-    message: JSON.stringify(err),
+    message: typeof err === "string" ? err : JSON.stringify(err),
     status: Status.Error,
     extra: err,
   };
@@ -118,7 +132,12 @@ const handleError: TEventHandler<IBaseDataWithEvent> = ({
     ...data,
     userAction: event2breadcrumb(EventType.Error),
   });
-  reporter.send(data);
+
+  const errorId = base64v2(`${EventType.Error}-Unknown-${data.message}`);
+  if (sentry.options.repeatCodeError || !sentry.codeErrors.has(errorId)) {
+    sentry.codeErrors.add(errorId);
+    reporter.send(data);
+  }
 };
 
 const handleHistory: TEventHandler<IRouteData> = ({
@@ -209,13 +228,21 @@ const handleClick: TEventHandler<IBaseDataWithEvent> = ({
   const typedEvent = extra as PointerEvent;
   const str =
     typedEvent.target instanceof HTMLElement ? dom2str(typedEvent.target) : "";
-  breadcrumb.push({
+  const data: IBaseDataWithEvent = {
     ...rest,
     type: EventType.Click,
     name: str,
     message: str,
+    status: Status.OK,
+    extra: str,
+  };
+  breadcrumb.push({
+    ...data,
     userAction: event2breadcrumb(EventType.Click),
   });
+  if (sentry.options.enableClick) {
+    reporter.send(data);
+  }
 };
 
 export {
@@ -227,6 +254,50 @@ export {
   handleWhiteScreen,
   handleClick,
 };
+
+class BatchErrorManager {
+  private cacheError: IReportPayload[] = [];
+  private timeoutID?: ReturnType<typeof setTimeout>;
+
+  public push(error: IReportPayload) {
+    this.cacheError.push(error);
+
+    if (this.timeoutID) clearTimeout(this.timeoutID);
+    this.timeoutID = setTimeout(() => this.flush(), 2000); // 2s debounce
+  }
+
+  private flush() {
+    if (this.cacheError.length === 0) return;
+
+    // Group errors by their name and message
+    const groups: Record<string, IReportPayload[]> = {};
+    for (const err of this.cacheError) {
+      const key = `${err.type}-${err.name}-${err.message}`;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(err);
+    }
+
+    this.cacheError = [];
+
+    const MAX_LENGTH = 5;
+    for (const [, items] of Object.entries(groups)) {
+      if (items.length < MAX_LENGTH) {
+        items.forEach((item) => reporter.send(item as any));
+      } else {
+        const sumItem = items[0];
+        const batchErrorData: IBatchErrorData = {
+          ...sumItem,
+          batchError: true,
+          batchErrorLength: items.length,
+          batchErrorLastHappenTime: items[items.length - 1].timestamp,
+        };
+        reporter.send(batchErrorData as any);
+      }
+    }
+  }
+}
+
+const batchErrorManager = new BatchErrorManager();
 
 const handleCodeError = (err: ErrorEvent) => {
   const { filename, colno: column, lineno: line, message } = err;
@@ -256,6 +327,6 @@ const handleCodeError = (err: ErrorEvent) => {
     (!sentry.options.repeatCodeError && !sentry.codeErrors.has(errorId))
   ) {
     sentry.codeErrors.add(errorId);
-    reporter.send(codeError);
+    batchErrorManager.push(codeError);
   }
 };

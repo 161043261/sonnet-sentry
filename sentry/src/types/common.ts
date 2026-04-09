@@ -24,6 +24,9 @@ export interface IDeviceInfo {
   userAgent: string; // 用户代理
   deviceType: string; // 设备种类, 例如 PC
   deviceModel: string; // 设备描述
+  fingerprint: string; // 设备指纹
+  language: string; // 系统语言
+  screenResolution: string; // 屏幕分辨率
 }
 
 export interface IReportPayload {
@@ -104,7 +107,14 @@ export type TReportPayload =
   | IPerformanceData
   | ICodeError
   | IScreenRecordData
-  | IRouteData;
+  | IRouteData
+  | IBatchErrorData;
+
+export interface IBatchErrorData extends IReportPayload {
+  batchError: true;
+  batchErrorLength: number;
+  batchErrorLastHappenTime: number;
+}
 
 export type TOnReportWhiteScreenData = (data: IReportPayload) => void;
 
