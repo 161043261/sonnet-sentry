@@ -1,0 +1,61 @@
+{
+  "name": "@lark-sentry/core",
+  "version": "1.0.2",
+  "description": "Sentry sdk core",
+  "type": "module",
+  "keywords": [
+    "sentry",
+    "sdk",
+    "core"
+  ],
+  "author": "github.com/hangtiancheng",
+  "license": "MIT",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./plugins/perf": {
+      "import": "./dist/plugins/perf/index.js",
+      "require": "./dist/plugins/perf/index.cjs",
+      "types": "./dist/plugins/perf/index.d.ts"
+    },
+    "./plugins/record": {
+      "import": "./dist/plugins/record/index.js",
+      "require": "./dist/plugins/record/index.cjs",
+      "types": "./dist/plugins/record/index.d.ts"
+    },
+    "./plugins/exposure": {
+      "import": "./dist/plugins/exposure/index.js",
+      "require": "./dist/plugins/exposure/index.cjs",
+      "types": "./dist/plugins/exposure/index.d.ts"
+    }
+  },
+  "dependencies": {
+    "@rrweb/record": "2.0.0-alpha.18",
+    "pako": "^2.1.0",
+    "ua-parser-js": "^2.0.9",
+    "web-vitals": "^5.2.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^29.0.2",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@rrweb/record": "2.0.0-alpha.18",
+    "@types/pako": "^2.0.4",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "react": "^19.2.5",
+    "rollup": "^4.60.1",
+    "typescript": "^6.0.2",
+    "vue": "^3.5.32"
+  },
+  "peerDependencies": {
+    "react": "^19.2.3",
+    "vue": "^3.5.26"
+  }
+}

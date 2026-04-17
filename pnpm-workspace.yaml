@@ -1,0 +1,8 @@
+packages:
+  - sentry
+  - client
+  - server
+
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - esbuild

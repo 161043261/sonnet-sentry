@@ -1,0 +1,40 @@
+{
+  "name": "lark-sentry",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "sentry"
+  ],
+  "scripts": {
+    "prepare": "husky",
+    "lint": "eslint ./sentry --quiet --ext .js,.jsx,.ts,.tsx --fix",
+    "format": "prettier --write ./client ./sentry ./server",
+    "build": "rollup -c ./rollup.config.ts",
+    "build:all": "webpack --config webpack.config.ts",
+    "dev:client": "cd ./client && pnpm dev",
+    "dev:server": "cd ./server && pnpm dev",
+    "dev": "pnpm build && concurrently \"pnpm dev:client\" \"pnpm dev:server\""
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.8",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.3.1",
+    "@rollup/plugin-terser": "^1.0.0",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/node": "^25.5.2",
+    "css-loader": "^7.1.4",
+    "html-webpack-plugin": "^5.6.6",
+    "husky": "^9.1.7",
+    "rollup": "^4.60.1",
+    "rollup-plugin-dts": "^6.4.1",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.7",
+    "typescript": "^5.9.3",
+    "webpack": "^5.106.0",
+    "webpack-cli": "^7.0.2"
+  },
+  "dependencies": {
+    "ua-parser-js": "^2.0.9"
+  }
+}
